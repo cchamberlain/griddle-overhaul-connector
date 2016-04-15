@@ -1,15 +1,18 @@
 import React, { Component, PropTypes } from 'react'
 import { createStore, combineReducers, applyMiddleware } from 'redux'
-import { Provider } from 'react-redux'
 import thunk from 'redux-thunk'
 
-import configureGriddleComponent from './configureGriddleComponent'
+const ROOT_STATE_KEY = 'griddle'
 
-import {Reducers, States, GriddleReducer} from 'griddle-overhaul-core'
-import { GriddleActions, GriddleHelpers as Helpers } from 'griddle-overhaul-core'
+
+import  { Reducers
+        , States
+        , GriddleReducer
+        , GriddleActions
+        , GriddleHelpers as Helpers
+        } from 'griddle-overhaul-core'
+
 import compose from 'lodash.compose'
-
-
 
 export function composer(functions) {
   return compose.apply(this, functions.reverse())
@@ -33,39 +36,6 @@ export const combineComponents = ({ plugins = null, components = null }) => {
   return composedComponents
 }
 
-
-export const GriddleRedux = ({Griddle, Components, Plugins}) => class GriddleRedux extends Component {
-  static PropTypes =  { data: PropTypes.array.isRequired
-                      };
-  constructor(props, context) {
-    super(props, context)
-    //TODO: Switch this around so that the states and the reducers come in as props.
-    //      if nothing is specified, it should default to the local one maybe
-    let { actions, reducer, components } =  processPlugins(Plugins, Components)
-
-    // Use the thunk middleware to allow for multiple dispatches in a single action.
-    const createStoreWithMiddleware = applyMiddleware(thunk)(createStore)
-
-    /* set up the redux store */
-    const combinedReducer = combineReducers(reducer)
-    this.store = createStoreWithMiddleware(reducer)
-
-    // Update the actions with the newly created store.
-    //actions = processPluginActions(actions, Plugins, this.store)
-
-    this.components = Object.assign({}, components, props.components)
-    this.component = configureGriddleComponent(actions)(Griddle)
-  }
-  render() {
-    return (
-      <Provider store={this.store}>
-        <this.component {...this.props} components={this.components}>
-          {this.props.children}
-        </this.component>
-      </Provider>
-    )
-  }
-}
 
 
 //Should return GriddleReducer and the new components
@@ -102,9 +72,6 @@ export const combinePlugins = plugins => {
             }
   }, { actions: GriddleActions, reducers: [], states: [], helpers: [], components: []})
 }
-
-
-
 
 
 

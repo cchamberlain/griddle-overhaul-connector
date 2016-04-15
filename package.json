@@ -1,7 +1,7 @@
 {
-  "name": "griddle-overhaul-connector",
+  "name": "griddle-overhaul-redux",
   "version": "0.0.26",
-  "description": "Connects griddle-core to react components",
+  "description": "Injects consumers redux with griddle",
   "main": "lib/index.js",
   "scripts": {
     "prebuild": "rimraf build",
@@ -20,10 +20,6 @@
     "start": "./node_modules/.bin/webpack --config webpack.config.js --watch",
     "test": "./node_modules/.bin/karma start --browsers PhantomJS",
     "test-debug": "./node_modules/.bin/karma start --browsers Chrome"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cchamberlain/griddle-overhaul-connector.git"
   },
   "keywords": [
     "griddle",
@@ -48,7 +44,6 @@
     "eslint-plugin-react": "^4.3.0",
     "rimraf": "^2.5.2",
     "griddle-overhaul-core": "*",
-    "griddle-overhaul-render": "*",
     "jasmine-core": "^2.2.0",
     "jsx-loader": "~0.12.2",
     "karma": "^0.13.*",
@@ -74,7 +69,11 @@
     "react": "^0.14.0 || ^15.0.0"
   },
   "bugs": {
-    "url": "https://github.com/cchamberlain/griddle-overhaul-connector/issues"
+    "url": "https://github.com/cchamberlain/griddle-overhaul-redux/issues"
   },
-  "homepage": "https://github.com/cchamberlain/griddle-overhaul-connector#readme"
+  "homepage": "https://github.com/cchamberlain/griddle-overhaul-redux#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cchamberlain/griddle-overhaul-redux.git"
+  }
 }
