@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/griddle-redux.js | griddle-overhaul-redux API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="https://github.com/cchamberlain/griddle-overhaul-redux" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-composer">composer</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-configureGriddleComponent">configureGriddleComponent</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-combineComponents">combineComponents</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-combinePlugins">combinePlugins</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-processPlugins">processPlugins</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">utils</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-buildColumnProperties">buildColumnProperties</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-columnPropertiesFromArray">columnPropertiesFromArray</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-PropertyHelper">PropertyHelper</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/griddle-redux.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import React, { Component, PropTypes } from &apos;react&apos;
+import { createStore, combineReducers, applyMiddleware } from &apos;redux&apos;
+import thunk from &apos;redux-thunk&apos;
+
+const ROOT_STATE_KEY = &apos;griddle&apos;
+
+
+import  { Reducers
+        , States
+        , GriddleReducer
+        , GriddleActions
+        , GriddleHelpers as Helpers
+        } from &apos;griddle-overhaul-core&apos;
+
+import compose from &apos;lodash.compose&apos;
+
+export function composer(functions) {
+  return compose.apply(this, functions.reverse())
+}
+
+export const combineComponents = ({ plugins = null, components = null }) =&gt; {
+  if(!plugins || !components) { return }
+
+  const composedComponents = {}
+  //for every plugin in griddleComponents compose the the matching plugins with the griddle component at the end
+  //TODO: This is going to be really slow -- we need to clean this up
+  for(var key in components) {
+    if(plugins.some(p =&gt; p.components.hasOwnProperty(key))) {
+      composedComponents[key] = composer(
+        plugins
+          .filter(p =&gt; p.components.hasOwnProperty(key))
+          .map(p =&gt; p.components[key])
+      )(components[key])
+    }
+  }
+  return composedComponents
+}
+
+
+
+//Should return GriddleReducer and the new components
+export const processPlugins = (plugins, originalComponents) =&gt; {
+  if(!plugins) {
+    return  { actions: GriddleActions
+            , reducer : GriddleReducer( [States.data, States.local]
+                                      , [Reducers.data, Reducers.local]
+                                      , [Helpers.data, Helpers.local]
+                                      )
+            }
+  }
+
+  const combinedPlugin = combinePlugins(plugins)
+  const reducer = GriddleReducer( [States.data, States.local, ...combinedPlugin.states]
+                                , [Reducers.data, Reducers.local, ...combinedPlugin.reducers]
+                                , [Helpers.data, Helpers.local, ...combinedPlugin.helpers]
+                                )
+
+  const components = combineComponents({ plugins, components: originalComponents })
+
+  return components ? { actions: combinedPlugin.actions, reducer, components }
+                    : { actions: combinedPlugin.actions, reducer }
+}
+
+export const combinePlugins = plugins =&gt; {
+  return plugins.reduce((previous, current) =&gt; {
+    const { actions, reducers, states, helpers, components } = current
+    return  { actions: Object.assign({}, previous.actions, actions)
+            , reducers: reducers ? [...previous.reducers, reducers] : previous.reducers
+            , states: states ? [...previous.states, states] : previous.states
+            , helpers: helpers ? [...previous.helpers, helpers] : previous.helpers
+            , components: components ? [...previous.components, components] : previous.components
+            }
+  }, { actions: GriddleActions, reducers: [], states: [], helpers: [], components: []})
+}
+
+
+
+
+/*
+export const bindStoreToActions = (actions, actionsToBind, store) =&gt; {
+  return Object.keys(actions).reduce((actions, actionKey) =&gt; {
+    if (actionsToBind.indexOf(actions[actionKey]) &gt; -1) {
+      // Bind the store to the action if it&apos;s in the array.
+      actions[actionKey] = actions[actionKey].bind(null, store)
+    }
+    return actions
+  }, actions)
+}
+*/
+
+/** REDUX THUNK AUTOMATICALLY INJECTS DISPATCH / GETSTATE INTO ACTIONS, UNSURE WHAT THIS IS FOR
+// ONLY DOES SOMETHING IF THERE EXISTS A PLUGIN WITH &apos;storeBoundActions&apos; PROPERTY
+export const processPluginActions = (actions, plugins, store) =&gt; {
+  if (!plugins)
+    return actions
+
+  // Bind store to necessary actions.
+  return plugins.reduce((previous, current) =&gt; {
+    const processActions = current.storeBoundActions &amp;&amp; current.storeBoundActions.length &gt; 0
+    return processActions ? bindStoreToActions(previous, current.storeBoundActions, store) : actions
+  }, actions)
+}
+*/
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.6)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

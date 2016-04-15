@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../">
+  <title data-ice="title">lib/__tests__/griddleReduxTest.js | griddle-overhaul-redux API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="https://github.com/cchamberlain/griddle-overhaul-redux" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-composer">composer</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-configureGriddleComponent">configureGriddleComponent</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-combineComponents">combineComponents</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-combinePlugins">combinePlugins</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-processPlugins">processPlugins</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">utils</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-buildColumnProperties">buildColumnProperties</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-columnPropertiesFromArray">columnPropertiesFromArray</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-PropertyHelper">PropertyHelper</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/__tests__/griddleReduxTest.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import GriddleRedux, {
+  previousOrCombined,
+  combinePlugins,
+  composer,
+  combineComponents
+} from &apos;../griddle-redux&apos;;
+
+describe(&apos;GriddleRedux&apos;, () =&gt; {
+  describe(&apos;previousOrCombined&apos;, () =&gt; {
+    it(&apos;combines values if they exist&apos;, () =&gt; {
+      const value = previousOrCombined([&apos;one&apos;, &apos;two&apos;, &apos;three&apos;], &apos;four&apos;);
+      expect(value).toEqual([&apos;one&apos;, &apos;two&apos;, &apos;three&apos;, &apos;four&apos;]);
+    });
+
+    it(&apos;returns original value if additional value not specified&apos;, () =&gt; {
+      const value = previousOrCombined([&apos;one&apos;, &apos;two&apos;]);
+      expect(value).toEqual([&apos;one&apos;, &apos;two&apos;]);
+    });
+
+    it(&apos;is undefined if no parameters are specified&apos;, () =&gt; {
+      const value = previousOrCombined();
+      expect(value).toBe(undefined);
+    });
+  });
+
+  describe(&apos;combinePlugins&apos;, () =&gt; {
+    it(&apos;combines a series of plugins into one plugin&apos;, () =&gt; {
+      const plugin1 = {
+        reducers: &apos;reducer-one&apos;,
+        states: &apos;state-one&apos;,
+        helpers: &apos;helper-one&apos;,
+        components: &apos;component-one&apos;
+      }
+
+      const plugin2 = {
+        reducers: &apos;reducer-two&apos;,
+        states: &apos;state-two&apos;,
+        helpers: &apos;helper-two&apos;,
+        components: &apos;component-two&apos;
+      }
+
+      const combinedPlugins = combinePlugins([plugin1, plugin2]);
+
+      expect(combinedPlugins.reducers).toEqual([&apos;reducer-one&apos;, &apos;reducer-two&apos;]);
+      expect(combinedPlugins.states).toEqual([&apos;state-one&apos;, &apos;state-two&apos;]);
+      expect(combinedPlugins.helpers).toEqual([&apos;helper-one&apos;, &apos;helper-two&apos;]);
+      expect(combinedPlugins.components).toEqual([&apos;component-one&apos;, &apos;component-two&apos;]);
+    });
+
+    it(&apos;returns an empty array for any items that have no values&apos;, () =&gt; {
+      const plugin1 = {
+        reducers: &apos;reducer-one&apos;,
+        states: &apos;state-one&apos;,
+        helpers: &apos;helper-one&apos;,
+      }
+
+      const plugin2 = {
+        reducers: &apos;reducer-two&apos;,
+        states: &apos;state-two&apos;,
+        helpers: &apos;helper-two&apos;,
+      }
+
+      const combinedPlugins = combinePlugins([plugin1, plugin2]);
+
+      expect(combinedPlugins.reducers).toEqual([&apos;reducer-one&apos;, &apos;reducer-two&apos;]);
+      expect(combinedPlugins.states).toEqual([&apos;state-one&apos;, &apos;state-two&apos;]);
+      expect(combinedPlugins.helpers).toEqual([&apos;helper-one&apos;, &apos;helper-two&apos;]);
+      expect(combinedPlugins.components).toEqual([]);
+    });
+
+    it(&apos;returns only results from plugins that have values&apos;, () =&gt; {
+      const plugin = { components: &apos;one&apos; };
+      const plugin2 = {};
+      const plugin3 = { components: &apos;three&apos; }
+
+      const combinedPlugins = combinePlugins([plugin, plugin2, plugin3]);
+
+      expect(combinedPlugins.components).toEqual([&apos;one&apos;, &apos;three&apos;]);
+    });
+  });
+
+  describe(&apos;composer&apos;, () =&gt; {
+    it(&apos;applies functions in the order they are recieved&apos;, () =&gt; {
+      const composed = composer(
+        [
+          (input) =&gt; { return `${input}First`; },
+          (input) =&gt; { return `${input}Second`; },
+          (input) =&gt; {return `${input}Third`; }
+        ]
+      )(&quot;1&quot;);
+
+      expect(composed).toEqual(&quot;1FirstSecondThird&quot;);
+    });
+  });
+
+  describe(&apos;combineComponents&apos;, () =&gt; {
+    it(&apos;returns undefined if plugins or components are not specified&apos;, () =&gt; {
+      const withPlugins = combineComponents({plugins: [&apos;one&apos;, &apos;two&apos;, &apos;three&apos;]});
+      const withComponents = combineComponents({originalComponents: [&apos;one&apos;, &apos;two&apos;, &apos;three&apos;]});
+
+      expect(withPlugins).toBe(undefined);
+      expect(withComponents).toBe(undefined);
+    });
+
+    it(&apos;wraps the components with plugins as expected&apos;, () =&gt; {
+      const components = {
+        one: &quot;ONE&quot;,
+        two: &quot;TWO&quot;
+      }
+
+      const plugins = [
+        { components: {
+          one: (component) =&gt; (`1 ${component}`),
+        }},
+        { components: {
+          one: (component) =&gt; (`${component} 2`),
+        }},
+        { components: {
+          one: (component) =&gt; (`${component} 3`)
+        }}
+      ]
+
+      const combined = combineComponents({ plugins, components });
+      expect(combined.one).toEqual(&apos;1 ONE 2 3&apos;);
+    })
+  })
+});
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.6)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

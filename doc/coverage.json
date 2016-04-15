@@ -1,0 +1,33 @@
+{
+  "coverage": "0%",
+  "expectCount": 8,
+  "actualCount": 0,
+  "files": {
+    "lib/utils/propertyHelper.js": {
+      "expectCount": 3,
+      "actualCount": 0,
+      "undocumentLines": [
+        30,
+        10,
+        2
+      ]
+    },
+    "lib/griddle-redux.js": {
+      "expectCount": 4,
+      "actualCount": 0,
+      "undocumentLines": [
+        21,
+        64,
+        17,
+        42
+      ]
+    },
+    "lib/configureGriddleComponent.js": {
+      "expectCount": 1,
+      "actualCount": 0,
+      "undocumentLines": [
+        20
+      ]
+    }
+  }
+}

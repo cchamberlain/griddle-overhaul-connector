@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/configureGriddleComponent.js | griddle-overhaul-redux API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="https://github.com/cchamberlain/griddle-overhaul-redux" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-composer">composer</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-configureGriddleComponent">configureGriddleComponent</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-combineComponents">combineComponents</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-combinePlugins">combinePlugins</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-processPlugins">processPlugins</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">utils</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-buildColumnProperties">buildColumnProperties</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-columnPropertiesFromArray">columnPropertiesFromArray</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-PropertyHelper">PropertyHelper</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/configureGriddleComponent.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import React, { Component, PropTypes } from &apos;react&apos;
+import { bindActionCreators } from &apos;redux&apos;
+import { connect } from &apos;react-redux&apos;
+
+//import { GriddleActions } from &apos;griddle-core&apos;;
+import PropertyHelper from &apos;./utils/propertyHelper&apos;
+
+const ROOT_STATE_KEY = &apos;griddle&apos;
+
+const areVisibleColumnsSame = (original, next, columns) =&gt; {
+  for(let col of columns) {
+    if(next[col] !== original[col])
+      return false
+  }
+  return true
+}
+
+const areArraysSame = (original, next, columns) =&gt; !original.some((item, index) =&gt; !areVisibleColumnsSame(item, next[index], columns))
+
+const configureGriddleComponent = actions =&gt; ComposedComponent =&gt; {
+  const { initializeGrid, loadData } = actions
+  //this.state.actionCreators = bindActionCreators(actions, props.dispatch)
+  class GriddleComponent extends Component {
+    static defaultProps = { dataKey: &apos;visibleData&apos; };
+
+    componentWillMount() { this.loadData() }
+    componentWillReceiveProps(nextProps) {
+      if(nextProps.data !== this.props.data)
+        this.loadData(nextProps)
+    }
+
+    loadData = () =&gt; {
+      const { dispatch, data, columns, ignoredColumns, children } = this.props
+      const allColumns = data &amp;&amp; data.length &gt; 0 ? Object.keys(data[0]) : []
+      const properties = PropertyHelper.propertiesToJS( { rowProperties: children
+                                                        , defaultColumns: columns
+                                                        , ignoredColumns
+                                                        , allColumns
+                                                        } )
+
+      dispatch(initializeGrid(properties))
+      if(props.data)
+        dispatch(loadData(data))
+    };
+
+    render() {
+      //TODO: FIGURE OUT WHAT THIS STATE IS ALL ABOUT
+      const { griddle, dispatch, dataKey } = this.props
+      const actionCreators = bindActionCreators(actions, dispatch)
+      return (
+        &lt;ComposedComponent
+          griddle={griddle}
+          {...actionCreators}
+          {...this.props}
+          data={griddle[dataKey]} /&gt;
+      )
+    }
+  }
+
+// componentState was state before (FULL REDUX STATE STRINGIFIED TO JSON)
+  const mapStateToProps = state =&gt; ({ griddle: state[ROOT_STATE_KEY] })
+  return connect(mapStateToProps)(GriddleComponent)
+}
+
+export default configureGriddleComponent
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.6)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

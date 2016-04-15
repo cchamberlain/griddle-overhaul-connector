@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../">
+  <title data-ice="title">lib/utils/propertyHelper.js | griddle-overhaul-redux API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="https://github.com/cchamberlain/griddle-overhaul-redux" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-composer">composer</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-configureGriddleComponent">configureGriddleComponent</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-combineComponents">combineComponents</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-combinePlugins">combinePlugins</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-processPlugins">processPlugins</a></span></span></li>
+<li data-ice="doc"><div data-ice="dirPath" class="nav-dir-path">utils</div><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-buildColumnProperties">buildColumnProperties</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-columnPropertiesFromArray">columnPropertiesFromArray</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-PropertyHelper">PropertyHelper</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/utils/propertyHelper.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">//TODO: Move most of this functionality to the component or something like that :|
+export function columnPropertiesFromArray(columns) {
+  //TODO: Make this more efficient -- this is just kind of make it work at this point
+  let properties = {};
+  columns.forEach(column =&gt; properties[column] = ({id: column}));
+
+  return properties;
+}
+
+export function buildColumnProperties({ rowProperties, allColumns, defaultColumns}) {
+  let columnProperties = defaultColumns ? columnPropertiesFromArray(defaultColumns) : {};
+
+  if(rowProperties &amp;&amp; rowProperties.props &amp;&amp; !!rowProperties.props.children &amp;&amp; Array.isArray(rowProperties.props.children)) {
+    columnProperties = rowProperties.props.children.reduce((previous, current) =&gt; {
+      previous[current.props.id] = current.props; return previous;
+    }, columnProperties)
+  } else if (rowProperties &amp;&amp; rowProperties.props &amp;&amp; rowProperties.props.children) {
+  //if just an object
+    columnProperties[rowProperties.props.children.props.id] = rowProperties.props.children.props;
+  }
+
+  //TODO: Don&apos;t check this this way :|
+  if(Object.keys(columnProperties).length === 0 &amp;&amp; allColumns) {
+    columnProperties = columnPropertiesFromArray(allColumns);
+  }
+
+  return columnProperties;
+}
+
+const PropertyHelper = {
+  propertiesToJS({ rowProperties, allColumns, defaultColumns, ignoredColumns=[] }) {
+    const getHiddenColumns = columnProperties =&gt; {
+      const visibleKeys = Object.keys(columnProperties);
+      const hiddenColumns = allColumns.filter(column =&gt; visibleKeys.indexOf(column) &lt; 0);
+
+      let hiddenColumnProperties = {};
+      hiddenColumns.forEach(column =&gt; hiddenColumnProperties[column] = {id: column});
+
+      return hiddenColumnProperties;
+    }
+
+    const ignoredColumnsWithChildren = ignoredColumns.indexOfChildren &gt; -1 ? ignoredColumns : [...ignoredColumns, &apos;children&apos;]
+    //if we don&apos;t have children return an empty metatdata object
+    if(!rowProperties) {
+      const columnProperties = columnPropertiesFromArray(defaultColumns || allColumns);
+      const hiddenColumnProperties = getHiddenColumns(columnProperties);
+
+      return {
+        rowProperties: null,
+        columnProperties,
+        ignoredColumns: ignoredColumnsWithChildren,
+        hiddenColumnProperties: hiddenColumnProperties
+      };
+    }
+    const columnProperties = buildColumnProperties({ rowProperties, allColumns, defaultColumns });
+
+    var rowProps = Object.assign({}, rowProperties.props);
+    delete rowProps.children;
+
+    if (!rowProps.hasOwnProperty(&apos;childColumnName&apos;)) {
+      rowProps.childColumnName = &apos;children&apos;;
+    }
+
+    const hiddenColumnProperties = getHiddenColumns(columnProperties);
+
+    //make sure that children is in the ignored column list
+
+    return {
+      rowProperties: rowProps,
+      columnProperties,
+      hiddenColumnProperties,
+      ignoredColumns: ignoredColumnsWithChildren,
+      metadataColumn: &apos;__metadata&apos;
+    };
+  }
+};
+
+export default PropertyHelper;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.6)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
