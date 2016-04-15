@@ -1,0 +1,1080 @@
+[
+  {
+    "__docId__": 0,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "lib/configureGriddleComponent.js",
+    "memberof": null,
+    "longname": "lib/configureGriddleComponent.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import React, { Component, PropTypes } from 'react'\r\nimport { bindActionCreators } from 'redux'\r\nimport { connect } from 'react-redux'\r\n\r\n//import { GriddleActions } from 'griddle-core';\r\nimport PropertyHelper from './utils/propertyHelper'\r\n\r\nconst ROOT_STATE_KEY = 'griddle'\r\n\r\nconst areVisibleColumnsSame = (original, next, columns) => {\r\n  for(let col of columns) {\r\n    if(next[col] !== original[col])\r\n      return false\r\n  }\r\n  return true\r\n}\r\n\r\nconst areArraysSame = (original, next, columns) => !original.some((item, index) => !areVisibleColumnsSame(item, next[index], columns))\r\n\r\nconst configureGriddleComponent = actions => ComposedComponent => {\r\n  const { initializeGrid, loadData } = actions\r\n  //this.state.actionCreators = bindActionCreators(actions, props.dispatch)\r\n  class GriddleComponent extends Component {\r\n    static defaultProps = { dataKey: 'visibleData' };\r\n\r\n    componentWillMount() { this.loadData() }\r\n    componentWillReceiveProps(nextProps) {\r\n      if(nextProps.data !== this.props.data)\r\n        this.loadData(nextProps)\r\n    }\r\n\r\n    loadData = () => {\r\n      const { dispatch, data, columns, ignoredColumns, children } = this.props\r\n      const allColumns = data && data.length > 0 ? Object.keys(data[0]) : []\r\n      const properties = PropertyHelper.propertiesToJS( { rowProperties: children\r\n                                                        , defaultColumns: columns\r\n                                                        , ignoredColumns\r\n                                                        , allColumns\r\n                                                        } )\r\n\r\n      dispatch(initializeGrid(properties))\r\n      if(props.data)\r\n        dispatch(loadData(data))\r\n    };\r\n\r\n    render() {\r\n      //TODO: FIGURE OUT WHAT THIS STATE IS ALL ABOUT\r\n      const { griddle, dispatch, dataKey } = this.props\r\n      const actionCreators = bindActionCreators(actions, dispatch)\r\n      return (\r\n        <ComposedComponent\r\n          griddle={griddle}\r\n          {...actionCreators}\r\n          {...this.props}\r\n          data={griddle[dataKey]} />\r\n      )\r\n    }\r\n  }\r\n\r\n// componentState was state before (FULL REDUX STATE STRINGIFIED TO JSON)\r\n  const mapStateToProps = state => ({ griddle: state[ROOT_STATE_KEY] })\r\n  return connect(mapStateToProps)(GriddleComponent)\r\n}\r\n\r\nexport default configureGriddleComponent\r\n"
+  },
+  {
+    "__docId__": 1,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "ROOT_STATE_KEY",
+    "memberof": "lib/configureGriddleComponent.js",
+    "longname": "lib/configureGriddleComponent.js~ROOT_STATE_KEY",
+    "access": null,
+    "export": false,
+    "importPath": "griddle-overhaul-redux/lib/configureGriddleComponent.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 8,
+    "undocument": true,
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 2,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "areVisibleColumnsSame",
+    "memberof": "lib/configureGriddleComponent.js",
+    "longname": "lib/configureGriddleComponent.js~areVisibleColumnsSame",
+    "access": null,
+    "export": false,
+    "importPath": "griddle-overhaul-redux/lib/configureGriddleComponent.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 10,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 3,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "areArraysSame",
+    "memberof": "lib/configureGriddleComponent.js",
+    "longname": "lib/configureGriddleComponent.js~areArraysSame",
+    "access": null,
+    "export": false,
+    "importPath": "griddle-overhaul-redux/lib/configureGriddleComponent.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 18,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 4,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "configureGriddleComponent",
+    "memberof": "lib/configureGriddleComponent.js",
+    "longname": "lib/configureGriddleComponent.js~configureGriddleComponent",
+    "access": null,
+    "export": true,
+    "importPath": "griddle-overhaul-redux/lib/configureGriddleComponent.js",
+    "importStyle": "configureGriddleComponent",
+    "description": null,
+    "lineNumber": 20,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 5,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "lib/griddle-redux.js",
+    "memberof": null,
+    "longname": "lib/griddle-redux.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import React, { Component, PropTypes } from 'react'\r\nimport { createStore, combineReducers, applyMiddleware } from 'redux'\r\nimport thunk from 'redux-thunk'\r\n\r\nconst ROOT_STATE_KEY = 'griddle'\r\n\r\n\r\nimport  { Reducers\r\n        , States\r\n        , GriddleReducer\r\n        , GriddleActions\r\n        , GriddleHelpers as Helpers\r\n        } from 'griddle-overhaul-core'\r\n\r\nimport compose from 'lodash.compose'\r\n\r\nexport function composer(functions) {\r\n  return compose.apply(this, functions.reverse())\r\n}\r\n\r\nexport const combineComponents = ({ plugins = null, components = null }) => {\r\n  if(!plugins || !components) { return }\r\n\r\n  const composedComponents = {}\r\n  //for every plugin in griddleComponents compose the the matching plugins with the griddle component at the end\r\n  //TODO: This is going to be really slow -- we need to clean this up\r\n  for(var key in components) {\r\n    if(plugins.some(p => p.components.hasOwnProperty(key))) {\r\n      composedComponents[key] = composer(\r\n        plugins\r\n          .filter(p => p.components.hasOwnProperty(key))\r\n          .map(p => p.components[key])\r\n      )(components[key])\r\n    }\r\n  }\r\n  return composedComponents\r\n}\r\n\r\n\r\n\r\n//Should return GriddleReducer and the new components\r\nexport const processPlugins = (plugins, originalComponents) => {\r\n  if(!plugins) {\r\n    return  { actions: GriddleActions\r\n            , reducer : GriddleReducer( [States.data, States.local]\r\n                                      , [Reducers.data, Reducers.local]\r\n                                      , [Helpers.data, Helpers.local]\r\n                                      )\r\n            }\r\n  }\r\n\r\n  const combinedPlugin = combinePlugins(plugins)\r\n  const reducer = GriddleReducer( [States.data, States.local, ...combinedPlugin.states]\r\n                                , [Reducers.data, Reducers.local, ...combinedPlugin.reducers]\r\n                                , [Helpers.data, Helpers.local, ...combinedPlugin.helpers]\r\n                                )\r\n\r\n  const components = combineComponents({ plugins, components: originalComponents })\r\n\r\n  return components ? { actions: combinedPlugin.actions, reducer, components }\r\n                    : { actions: combinedPlugin.actions, reducer }\r\n}\r\n\r\nexport const combinePlugins = plugins => {\r\n  return plugins.reduce((previous, current) => {\r\n    const { actions, reducers, states, helpers, components } = current\r\n    return  { actions: Object.assign({}, previous.actions, actions)\r\n            , reducers: reducers ? [...previous.reducers, reducers] : previous.reducers\r\n            , states: states ? [...previous.states, states] : previous.states\r\n            , helpers: helpers ? [...previous.helpers, helpers] : previous.helpers\r\n            , components: components ? [...previous.components, components] : previous.components\r\n            }\r\n  }, { actions: GriddleActions, reducers: [], states: [], helpers: [], components: []})\r\n}\r\n\r\n\r\n\r\n\r\n/*\r\nexport const bindStoreToActions = (actions, actionsToBind, store) => {\r\n  return Object.keys(actions).reduce((actions, actionKey) => {\r\n    if (actionsToBind.indexOf(actions[actionKey]) > -1) {\r\n      // Bind the store to the action if it's in the array.\r\n      actions[actionKey] = actions[actionKey].bind(null, store)\r\n    }\r\n    return actions\r\n  }, actions)\r\n}\r\n*/\r\n\r\n/** REDUX THUNK AUTOMATICALLY INJECTS DISPATCH / GETSTATE INTO ACTIONS, UNSURE WHAT THIS IS FOR\r\n// ONLY DOES SOMETHING IF THERE EXISTS A PLUGIN WITH 'storeBoundActions' PROPERTY\r\nexport const processPluginActions = (actions, plugins, store) => {\r\n  if (!plugins)\r\n    return actions\r\n\r\n  // Bind store to necessary actions.\r\n  return plugins.reduce((previous, current) => {\r\n    const processActions = current.storeBoundActions && current.storeBoundActions.length > 0\r\n    return processActions ? bindStoreToActions(previous, current.storeBoundActions, store) : actions\r\n  }, actions)\r\n}\r\n*/\r\n"
+  },
+  {
+    "__docId__": 6,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "ROOT_STATE_KEY",
+    "memberof": "lib/griddle-redux.js",
+    "longname": "lib/griddle-redux.js~ROOT_STATE_KEY",
+    "access": null,
+    "export": false,
+    "importPath": "griddle-overhaul-redux/lib/griddle-redux.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 5,
+    "undocument": true,
+    "type": {
+      "types": [
+        "string"
+      ]
+    }
+  },
+  {
+    "__docId__": 7,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "composer",
+    "memberof": "lib/griddle-redux.js",
+    "longname": "lib/griddle-redux.js~composer",
+    "access": null,
+    "export": true,
+    "importPath": "griddle-overhaul-redux/lib/griddle-redux.js",
+    "importStyle": "{composer}",
+    "description": null,
+    "lineNumber": 17,
+    "undocument": true,
+    "params": [
+      {
+        "name": "functions",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 8,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "combineComponents",
+    "memberof": "lib/griddle-redux.js",
+    "longname": "lib/griddle-redux.js~combineComponents",
+    "access": null,
+    "export": true,
+    "importPath": "griddle-overhaul-redux/lib/griddle-redux.js",
+    "importStyle": "{combineComponents}",
+    "description": null,
+    "lineNumber": 21,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 9,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "processPlugins",
+    "memberof": "lib/griddle-redux.js",
+    "longname": "lib/griddle-redux.js~processPlugins",
+    "access": null,
+    "export": true,
+    "importPath": "griddle-overhaul-redux/lib/griddle-redux.js",
+    "importStyle": "{processPlugins}",
+    "description": null,
+    "lineNumber": 42,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 10,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "combinePlugins",
+    "memberof": "lib/griddle-redux.js",
+    "longname": "lib/griddle-redux.js~combinePlugins",
+    "access": null,
+    "export": true,
+    "importPath": "griddle-overhaul-redux/lib/griddle-redux.js",
+    "importStyle": "{combinePlugins}",
+    "description": null,
+    "lineNumber": 64,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 11,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "lib/index.js",
+    "memberof": null,
+    "longname": "lib/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import { GriddleRedux } from './griddle-redux'\r\nimport { GriddleContainer } from './griddleContainer'\r\n\r\nexport { GriddleContainer, GriddleRedux }\r\n"
+  },
+  {
+    "__docId__": 12,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "lib/utils/propertyHelper.js",
+    "memberof": null,
+    "longname": "lib/utils/propertyHelper.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "//TODO: Move most of this functionality to the component or something like that :|\r\nexport function columnPropertiesFromArray(columns) {\r\n  //TODO: Make this more efficient -- this is just kind of make it work at this point\r\n  let properties = {};\r\n  columns.forEach(column => properties[column] = ({id: column}));\r\n\r\n  return properties;\r\n}\r\n\r\nexport function buildColumnProperties({ rowProperties, allColumns, defaultColumns}) {\r\n  let columnProperties = defaultColumns ? columnPropertiesFromArray(defaultColumns) : {};\r\n\r\n  if(rowProperties && rowProperties.props && !!rowProperties.props.children && Array.isArray(rowProperties.props.children)) {\r\n    columnProperties = rowProperties.props.children.reduce((previous, current) => {\r\n      previous[current.props.id] = current.props; return previous;\r\n    }, columnProperties)\r\n  } else if (rowProperties && rowProperties.props && rowProperties.props.children) {\r\n  //if just an object\r\n    columnProperties[rowProperties.props.children.props.id] = rowProperties.props.children.props;\r\n  }\r\n\r\n  //TODO: Don't check this this way :|\r\n  if(Object.keys(columnProperties).length === 0 && allColumns) {\r\n    columnProperties = columnPropertiesFromArray(allColumns);\r\n  }\r\n\r\n  return columnProperties;\r\n}\r\n\r\nconst PropertyHelper = {\r\n  propertiesToJS({ rowProperties, allColumns, defaultColumns, ignoredColumns=[] }) {\r\n    const getHiddenColumns = columnProperties => {\r\n      const visibleKeys = Object.keys(columnProperties);\r\n      const hiddenColumns = allColumns.filter(column => visibleKeys.indexOf(column) < 0);\r\n\r\n      let hiddenColumnProperties = {};\r\n      hiddenColumns.forEach(column => hiddenColumnProperties[column] = {id: column});\r\n\r\n      return hiddenColumnProperties;\r\n    }\r\n\r\n    const ignoredColumnsWithChildren = ignoredColumns.indexOfChildren > -1 ? ignoredColumns : [...ignoredColumns, 'children']\r\n    //if we don't have children return an empty metatdata object\r\n    if(!rowProperties) {\r\n      const columnProperties = columnPropertiesFromArray(defaultColumns || allColumns);\r\n      const hiddenColumnProperties = getHiddenColumns(columnProperties);\r\n\r\n      return {\r\n        rowProperties: null,\r\n        columnProperties,\r\n        ignoredColumns: ignoredColumnsWithChildren,\r\n        hiddenColumnProperties: hiddenColumnProperties\r\n      };\r\n    }\r\n    const columnProperties = buildColumnProperties({ rowProperties, allColumns, defaultColumns });\r\n\r\n    var rowProps = Object.assign({}, rowProperties.props);\r\n    delete rowProps.children;\r\n\r\n    if (!rowProps.hasOwnProperty('childColumnName')) {\r\n      rowProps.childColumnName = 'children';\r\n    }\r\n\r\n    const hiddenColumnProperties = getHiddenColumns(columnProperties);\r\n\r\n    //make sure that children is in the ignored column list\r\n\r\n    return {\r\n      rowProperties: rowProps,\r\n      columnProperties,\r\n      hiddenColumnProperties,\r\n      ignoredColumns: ignoredColumnsWithChildren,\r\n      metadataColumn: '__metadata'\r\n    };\r\n  }\r\n};\r\n\r\nexport default PropertyHelper;\r\n"
+  },
+  {
+    "__docId__": 13,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "columnPropertiesFromArray",
+    "memberof": "lib/utils/propertyHelper.js",
+    "longname": "lib/utils/propertyHelper.js~columnPropertiesFromArray",
+    "access": null,
+    "export": true,
+    "importPath": "griddle-overhaul-redux/lib/utils/propertyHelper.js",
+    "importStyle": "{columnPropertiesFromArray}",
+    "description": null,
+    "lineNumber": 2,
+    "undocument": true,
+    "params": [
+      {
+        "name": "columns",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 14,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "buildColumnProperties",
+    "memberof": "lib/utils/propertyHelper.js",
+    "longname": "lib/utils/propertyHelper.js~buildColumnProperties",
+    "access": null,
+    "export": true,
+    "importPath": "griddle-overhaul-redux/lib/utils/propertyHelper.js",
+    "importStyle": "{buildColumnProperties}",
+    "description": null,
+    "lineNumber": 10,
+    "undocument": true,
+    "params": [
+      {
+        "name": "objectPattern",
+        "types": [
+          "{\"rowProperties\": *, \"allColumns\": *, \"defaultColumns\": *}"
+        ],
+        "defaultRaw": {
+          "rowProperties": null,
+          "allColumns": null,
+          "defaultColumns": null
+        },
+        "defaultValue": "{\"rowProperties\":null,\"allColumns\":null,\"defaultColumns\":null}"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 15,
+    "kind": "variable",
+    "static": true,
+    "variation": null,
+    "name": "PropertyHelper",
+    "memberof": "lib/utils/propertyHelper.js",
+    "longname": "lib/utils/propertyHelper.js~PropertyHelper",
+    "access": null,
+    "export": true,
+    "importPath": "griddle-overhaul-redux/lib/utils/propertyHelper.js",
+    "importStyle": "PropertyHelper",
+    "description": null,
+    "lineNumber": 30,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 16,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "lib/utils/__tests__/propertyHelperTest.js",
+    "memberof": null,
+    "longname": "lib/utils/__tests__/propertyHelperTest.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import * as Helpers from '../propertyHelper';\r\n\r\ndescribe ('PropertyHelper', () => {\r\n  describe('buildColumnProperties', () => {\r\n    it('sets an array of properties when children are an array', () => {\r\n      const rowProperties = {\r\n        props: {\r\n          children: [\r\n            { props: { id: 1, name: \"one\"}},\r\n            { props: { id: 2, name: \"two\"}}\r\n          ]\r\n        }\r\n      }\r\n      const columnProperties = Helpers.buildColumnProperties({ rowProperties });\r\n\r\n      expect(columnProperties).toEqual({\r\n        1: { id: 1, name: \"one\"},\r\n        2: { id: 2, name: \"two\"}\r\n      });\r\n    });\r\n  });\r\n\r\n  it('sets a single property when children is one item', () => {\r\n       const rowProperties = {\r\n        props: {\r\n          children: { props: { id: 2, name: \"two\"}}\r\n        }\r\n      }\r\n\r\n      const columnProperties = Helpers.buildColumnProperties({ rowProperties });\r\n\r\n      expect(columnProperties).toEqual({ 2: { id: 2, name: \"two\"}});\r\n  });\r\n\r\n  it('builds column properties for column array if no children specified', () => {\r\n    const rowProperties = null;\r\n    const columnProperties = Helpers.buildColumnProperties({ rowProperties, allColumns: ['one', 'two', 'three'] });\r\n    expect(columnProperties).toEqual({\r\n      one: { id: 'one' },\r\n      two: { id: 'two' },\r\n      three: { id: 'three' }\r\n    });\r\n  });\r\n\r\n  it('uses default columns if specified', () => {\r\n    const defaultColumns = ['one', 'two', 'three'];\r\n    const columnProperties = Helpers.buildColumnProperties({ defaultColumns });\r\n\r\n    expect(columnProperties).toEqual({\r\n      one: { id: 'one' },\r\n      two: { id: 'two' },\r\n      three: { id: 'three' }\r\n    });\r\n  });\r\n\r\n  it('overrides default columns with columnProperties', () => {\r\n    const defaultColumns = ['one', 'two', 'three'];\r\n    const rowProperties = {\r\n      props: {\r\n        children: [\r\n          { props: { id: 'one', name: \"ichi\"}},\r\n        ]\r\n      }\r\n    }\r\n    const columnProperties = Helpers.buildColumnProperties({ defaultColumns });\r\n\r\n    expect(columnProperties).toEqual({\r\n      one: { id: 'one' },\r\n      two: { id: 'two' },\r\n      three: { id: 'three' }\r\n    });\r\n  });\r\n});\r\n"
+  },
+  {
+    "__docId__": 17,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "lib/__tests__/griddleReduxTest.js",
+    "memberof": null,
+    "longname": "lib/__tests__/griddleReduxTest.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import GriddleRedux, {\r\n  previousOrCombined,\r\n  combinePlugins,\r\n  composer,\r\n  combineComponents\r\n} from '../griddle-redux';\r\n\r\ndescribe('GriddleRedux', () => {\r\n  describe('previousOrCombined', () => {\r\n    it('combines values if they exist', () => {\r\n      const value = previousOrCombined(['one', 'two', 'three'], 'four');\r\n      expect(value).toEqual(['one', 'two', 'three', 'four']);\r\n    });\r\n\r\n    it('returns original value if additional value not specified', () => {\r\n      const value = previousOrCombined(['one', 'two']);\r\n      expect(value).toEqual(['one', 'two']);\r\n    });\r\n\r\n    it('is undefined if no parameters are specified', () => {\r\n      const value = previousOrCombined();\r\n      expect(value).toBe(undefined);\r\n    });\r\n  });\r\n\r\n  describe('combinePlugins', () => {\r\n    it('combines a series of plugins into one plugin', () => {\r\n      const plugin1 = {\r\n        reducers: 'reducer-one',\r\n        states: 'state-one',\r\n        helpers: 'helper-one',\r\n        components: 'component-one'\r\n      }\r\n\r\n      const plugin2 = {\r\n        reducers: 'reducer-two',\r\n        states: 'state-two',\r\n        helpers: 'helper-two',\r\n        components: 'component-two'\r\n      }\r\n\r\n      const combinedPlugins = combinePlugins([plugin1, plugin2]);\r\n\r\n      expect(combinedPlugins.reducers).toEqual(['reducer-one', 'reducer-two']);\r\n      expect(combinedPlugins.states).toEqual(['state-one', 'state-two']);\r\n      expect(combinedPlugins.helpers).toEqual(['helper-one', 'helper-two']);\r\n      expect(combinedPlugins.components).toEqual(['component-one', 'component-two']);\r\n    });\r\n\r\n    it('returns an empty array for any items that have no values', () => {\r\n      const plugin1 = {\r\n        reducers: 'reducer-one',\r\n        states: 'state-one',\r\n        helpers: 'helper-one',\r\n      }\r\n\r\n      const plugin2 = {\r\n        reducers: 'reducer-two',\r\n        states: 'state-two',\r\n        helpers: 'helper-two',\r\n      }\r\n\r\n      const combinedPlugins = combinePlugins([plugin1, plugin2]);\r\n\r\n      expect(combinedPlugins.reducers).toEqual(['reducer-one', 'reducer-two']);\r\n      expect(combinedPlugins.states).toEqual(['state-one', 'state-two']);\r\n      expect(combinedPlugins.helpers).toEqual(['helper-one', 'helper-two']);\r\n      expect(combinedPlugins.components).toEqual([]);\r\n    });\r\n\r\n    it('returns only results from plugins that have values', () => {\r\n      const plugin = { components: 'one' };\r\n      const plugin2 = {};\r\n      const plugin3 = { components: 'three' }\r\n\r\n      const combinedPlugins = combinePlugins([plugin, plugin2, plugin3]);\r\n\r\n      expect(combinedPlugins.components).toEqual(['one', 'three']);\r\n    });\r\n  });\r\n\r\n  describe('composer', () => {\r\n    it('applies functions in the order they are recieved', () => {\r\n      const composed = composer(\r\n        [\r\n          (input) => { return `${input}First`; },\r\n          (input) => { return `${input}Second`; },\r\n          (input) => {return `${input}Third`; }\r\n        ]\r\n      )(\"1\");\r\n\r\n      expect(composed).toEqual(\"1FirstSecondThird\");\r\n    });\r\n  });\r\n\r\n  describe('combineComponents', () => {\r\n    it('returns undefined if plugins or components are not specified', () => {\r\n      const withPlugins = combineComponents({plugins: ['one', 'two', 'three']});\r\n      const withComponents = combineComponents({originalComponents: ['one', 'two', 'three']});\r\n\r\n      expect(withPlugins).toBe(undefined);\r\n      expect(withComponents).toBe(undefined);\r\n    });\r\n\r\n    it('wraps the components with plugins as expected', () => {\r\n      const components = {\r\n        one: \"ONE\",\r\n        two: \"TWO\"\r\n      }\r\n\r\n      const plugins = [\r\n        { components: {\r\n          one: (component) => (`1 ${component}`),\r\n        }},\r\n        { components: {\r\n          one: (component) => (`${component} 2`),\r\n        }},\r\n        { components: {\r\n          one: (component) => (`${component} 3`)\r\n        }}\r\n      ]\r\n\r\n      const combined = combineComponents({ plugins, components });\r\n      expect(combined.one).toEqual('1 ONE 2 3');\r\n    })\r\n  })\r\n});\r\n"
+  },
+  {
+    "__docId__": 19,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Infinity",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Infinity",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 20,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NaN",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~NaN",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 21,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "undefined",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~undefined",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 22,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "null",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~null",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 23,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 24,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 25,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 26,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 27,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 28,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 29,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Symbol",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Symbol",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 30,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Error",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Error",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 31,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "EvalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~EvalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 32,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "InternalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~InternalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 33,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RangeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RangeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 34,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ReferenceError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ReferenceError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 35,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "SyntaxError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~SyntaxError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 36,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "TypeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~TypeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 37,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "URIError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~URIError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 38,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 39,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 40,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Date",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Date",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 41,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "String",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~String",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 42,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "string",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~string",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 43,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RegExp",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RegExp",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 44,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 45,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 46,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 47,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8ClampedArray",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8ClampedArray",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 48,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 49,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 50,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 51,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 52,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 53,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float64Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float64Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 54,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Map",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Map",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 55,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Set",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Set",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 56,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakMap",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakMap",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 57,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakSet",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakSet",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 58,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ArrayBuffer",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ArrayBuffer",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 59,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DataView",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~DataView",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 60,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "JSON",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~JSON",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 61,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Promise",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Promise",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 62,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Generator",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Generator",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 63,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "GeneratorFunction",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~GeneratorFunction",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 64,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Reflect",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Reflect",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 65,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Proxy",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Proxy",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 67,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "CanvasRenderingContext2D",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~CanvasRenderingContext2D",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 68,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DocumentFragment",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~DocumentFragment",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 69,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Element",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Element",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 70,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Event",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Event",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 71,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Node",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Node",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 72,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NodeList",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~NodeList",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 73,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "XMLHttpRequest",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~XMLHttpRequest",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 74,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "AudioContext",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~AudioContext",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  }
+]
