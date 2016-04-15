@@ -1,6 +1,6 @@
 {
   "name": "griddle-overhaul-redux",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "description": "Injects consumers redux with griddle",
   "main": "lib/index.js",
   "scripts": {
@@ -15,8 +15,6 @@
     "prerelease-doc": "npm run doc",
     "release-doc": "git subtree push --prefix doc origin gh-pages",
     "postrelease-doc": "git commit -am \"doc-release\" && git push --follow-tags",
-
-
     "start": "./node_modules/.bin/webpack --config webpack.config.js --watch",
     "test": "./node_modules/.bin/karma start --browsers PhantomJS",
     "test-debug": "./node_modules/.bin/karma start --browsers Chrome"
