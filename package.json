@@ -1,6 +1,6 @@
 {
   "name": "griddle-overhaul-redux",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "description": "Injects consumers redux with griddle",
   "main": "lib/index.js",
   "scripts": {
