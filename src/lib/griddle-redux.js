@@ -4,10 +4,11 @@ import thunk from 'redux-thunk'
 
 const ROOT_STATE_KEY = 'griddle'
 
+import configureReducer from './reducers'
+const reducer = configureReducer()
 
-import  { Reducers
-        , States
-        , GriddleReducer
+
+import  { States
         , GriddleActions
         , GriddleHelpers as Helpers
         } from 'griddle-overhaul-core'
@@ -43,7 +44,7 @@ export const processPlugins = (plugins, originalComponents) => {
   if(!plugins) {
     return  { actions: GriddleActions
             , reducer : GriddleReducer( [States.data, States.local]
-                                      , [Reducers.data, Reducers.local]
+                                      , [reducer.data, reducer.local]
                                       , [Helpers.data, Helpers.local]
                                       )
             }
@@ -51,7 +52,7 @@ export const processPlugins = (plugins, originalComponents) => {
 
   const combinedPlugin = combinePlugins(plugins)
   const reducer = GriddleReducer( [States.data, States.local, ...combinedPlugin.states]
-                                , [Reducers.data, Reducers.local, ...combinedPlugin.reducers]
+                                , [reducer.data, reducer.local, ...combinedPlugin.reducers]
                                 , [Helpers.data, Helpers.local, ...combinedPlugin.helpers]
                                 )
 

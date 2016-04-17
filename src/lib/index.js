@@ -1,4 +1,6 @@
 import { GriddleRedux } from './griddle-redux'
-import { GriddleContainer } from './griddleContainer'
+import configureGriddleComponent from './configureGriddleComponent'
+import configureReducer from './reducers'
 
-export { GriddleContainer, GriddleRedux }
+const reducer = configureReducer()
+export { configureGriddleComponent, GriddleRedux, reducer }
