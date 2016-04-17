@@ -8,7 +8,7 @@ import configureReducer from './reducers'
 const reducer = configureReducer()
 
 
-import  { States
+import  { states
         , GriddleActions
         , GriddleHelpers as Helpers
         } from 'griddle-overhaul-core'
@@ -43,7 +43,7 @@ export const combineComponents = ({ plugins = null, components = null }) => {
 export const processPlugins = (plugins, originalComponents) => {
   if(!plugins) {
     return  { actions: GriddleActions
-            , reducer : GriddleReducer( [States.data, States.local]
+            , reducer: GriddleReducer( [States.data, States.local]
                                       , [reducer.data, reducer.local]
                                       , [Helpers.data, Helpers.local]
                                       )
@@ -51,10 +51,12 @@ export const processPlugins = (plugins, originalComponents) => {
   }
 
   const combinedPlugin = combinePlugins(plugins)
+  /*
   const reducer = GriddleReducer( [States.data, States.local, ...combinedPlugin.states]
                                 , [reducer.data, reducer.local, ...combinedPlugin.reducers]
                                 , [Helpers.data, Helpers.local, ...combinedPlugin.helpers]
                                 )
+                                */
 
   const components = combineComponents({ plugins, components: originalComponents })
 
