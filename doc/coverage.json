@@ -1,8 +1,36 @@
 {
   "coverage": "0%",
-  "expectCount": 8,
+  "expectCount": 36,
   "actualCount": 0,
   "files": {
+    "lib/reducers/local.js": {
+      "expectCount": 10,
+      "actualCount": 0,
+      "undocumentLines": [
+        60,
+        138,
+        122,
+        100,
+        37,
+        105,
+        114,
+        81,
+        147,
+        5
+      ]
+    },
+    "lib/reducers/data.js": {
+      "expectCount": 6,
+      "actualCount": 0,
+      "undocumentLines": [
+        24,
+        20,
+        28,
+        32,
+        37,
+        6
+      ]
+    },
     "lib/utils/propertyHelper.js": {
       "expectCount": 3,
       "actualCount": 0,
@@ -12,14 +40,28 @@
         2
       ]
     },
+    "lib/reducers/griddle.js": {
+      "expectCount": 8,
+      "actualCount": 0,
+      "undocumentLines": [
+        124,
+        107,
+        20,
+        97,
+        63,
+        58,
+        32,
+        69
+      ]
+    },
     "lib/griddle-redux.js": {
       "expectCount": 4,
       "actualCount": 0,
       "undocumentLines": [
-        21,
-        64,
-        17,
-        42
+        22,
+        67,
+        18,
+        43
       ]
     },
     "lib/configureGriddleComponent.js": {
@@ -27,6 +69,28 @@
       "actualCount": 0,
       "undocumentLines": [
         20
+      ]
+    },
+    "lib/reducers/index.js": {
+      "expectCount": 1,
+      "actualCount": 0,
+      "undocumentLines": [
+        4
+      ]
+    },
+    "lib/reducers/__tests__/testUtils.js": {
+      "expectCount": 2,
+      "actualCount": 0,
+      "undocumentLines": [
+        4,
+        14
+      ]
+    },
+    "lib/index.js": {
+      "expectCount": 1,
+      "actualCount": 0,
+      "undocumentLines": [
+        5
       ]
     }
   }
